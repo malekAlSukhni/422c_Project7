@@ -6,9 +6,7 @@ import java.util.Observable;
 import java.util.Observer;
 
 public class ClientObserver extends PrintWriter implements Observer {
-	String name;
 	public ClientObserver(OutputStream out) {
-
 		super(out);
 	}
 	@Override

@@ -13,7 +13,7 @@ import javafx.stage.Stage;
 
 public class ChatClient extends Application{
 	
-	private String name;
+	private ChatUser user;
 	private TextArea incoming;
 	private TextField outgoing;
 	private BufferedReader reader;
@@ -55,7 +55,8 @@ public class ChatClient extends Application{
 	private void setName(TextField tf) {
 		
 		if(!tf.getText().equals("")){
-		name = tf.getText();
+		user = new ChatUser(tf.getText());
+
 		outgoing = new TextField();
 		outgoing.setPrefColumnCount(5);
 		outgoing.setPromptText("Enter Message");
@@ -67,7 +68,7 @@ public class ChatClient extends Application{
 		btn2.setText("Send");
 		btn2.setLayoutX(305);
 		btn2.setLayoutY(10);
-		btn2.setOnAction(e -> sendText());
+		btn2.setOnAction(e -> sendMessage());
 		
 		incoming = new TextArea();
 		incoming.setLayoutX(10);
@@ -85,18 +86,25 @@ public class ChatClient extends Application{
 		
 		try {
 			setUpNetworking();
+			outgoing.setText("INIT " + tf.getText());
+			sendText();
 		} catch (Exception e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 		
-		primaryStage.setTitle(name);
+		primaryStage.setTitle(user.name);
 		primaryStage.setScene(new Scene(pane2, 450, 400));
 		}
 	}
 
+	private void sendMessage() {
+		outgoing.setText("MESSAGE " + user.name + " : " + outgoing.getText());
+		sendText();
+	}
+
 	private void sendText() {
-		writer.println(name + " : " + outgoing.getText());
+		writer.println(outgoing.getText());
 		writer.flush();
 		outgoing.setText("");
 		outgoing.requestFocus();
@@ -104,11 +112,11 @@ public class ChatClient extends Application{
 
 	private void setUpNetworking() throws Exception {
 		@SuppressWarnings("resource")
-		Socket sock = new Socket("127.0.0.1", 4242);
+		Socket sock = new Socket("localhost", 4242);
 		InputStreamReader streamReader = new InputStreamReader(sock.getInputStream());
 		reader = new BufferedReader(streamReader);
 		writer = new PrintWriter(sock.getOutputStream());
-		System.out.println("networking established");
+		System.out.println("Joined Chat Lobby");
 		Thread readerThread = new Thread(new IncomingReader());
 		readerThread.start();
 	}
