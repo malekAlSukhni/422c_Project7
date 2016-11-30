@@ -6,11 +6,13 @@ import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Observable;
 
 public class ChatServer extends Observable {
 	
 	ArrayList<Socket> listOfAllSockets = new ArrayList<Socket>();
+	HashMap<String, String> info = new HashMap<String, String>();
 
 	public static void main(String[] args) {
 		try {
@@ -57,7 +59,14 @@ public class ChatServer extends Observable {
 					System.out.println("server read " + message);
 					switch (x[0]) {
 					case "INIT":
-						name = message.replace("INIT ", "");
+						if(info.keySet().contains(x[1])){
+							setChanged();
+							notifyObservers("error");
+							break;
+						}
+						info.put(x[1], x[2]);
+						name = x[1];
+						notifyObservers("success");
 						break;
 					case "MESSAGE":
 						setChanged();
