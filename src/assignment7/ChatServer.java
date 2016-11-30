@@ -5,9 +5,13 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.Observable;
 
 public class ChatServer extends Observable {
+	
+	ArrayList<Socket> listOfAllSockets = new ArrayList<Socket>();
+
 	public static void main(String[] args) {
 		try {
 			new ChatServer().setUpNetworking();
@@ -21,6 +25,7 @@ public class ChatServer extends Observable {
 		ServerSocket serverSock = new ServerSocket(4242);
 		while (true) {
 			Socket clientSocket = serverSock.accept();
+			listOfAllSockets.add(clientSocket);
 			ClientObserver writer = new ClientObserver(clientSocket.getOutputStream());
 			Thread t = new Thread(new ClientHandler(clientSocket));
 			t.start();
@@ -28,11 +33,15 @@ public class ChatServer extends Observable {
 			System.out.println("got a connection");
 		}
 	}
+
 	class ClientHandler implements Runnable {
+		
+		private String name = null;
+		private Socket sock;
 		private BufferedReader reader;
 
 		public ClientHandler(Socket clientSocket) {
-			Socket sock = clientSocket;
+			sock = clientSocket;
 			try {
 				reader = new BufferedReader(new InputStreamReader(sock.getInputStream()));
 			} catch (IOException e) {
@@ -44,9 +53,17 @@ public class ChatServer extends Observable {
 			String message;
 			try {
 				while ((message = reader.readLine()) != null) {
-					System.out.println("server read "+message);
-					setChanged();
-					notifyObservers(message);
+					String[] x = message.split(" ");
+					System.out.println("server read " + message);
+					switch (x[0]) {
+					case "INIT":
+						name = message.replace("INIT ", "");
+						break;
+					case "MESSAGE":
+						setChanged();
+						notifyObservers(message.replace("MESSAGE ", ""));
+						break;
+					}
 				}
 			} catch (IOException e) {
 				e.printStackTrace();
