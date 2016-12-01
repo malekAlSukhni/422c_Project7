@@ -1,3 +1,14 @@
+/* <ClientObserver.java>
+ * EE422C Project 7 submission by
+ * Robert Bolt
+ * rob329
+ * 16465
+ * Malek Al Sukhni
+ * mha664
+ * 16470
+ * Slip days used: 1
+ * Fall 2016
+ */
 package assignment7;
 
 import java.io.OutputStream;

@@ -1,3 +1,14 @@
+/* <ClientMain.java>
+ * EE422C Project 7 submission by
+ * Robert Bolt
+ * rob329
+ * 16465
+ * Malek Al Sukhni
+ * mha664
+ * 16470ow
+ * Slip days used: 1
+ * Fall 2016
+ */
 package assignment7;
 
 import java.io.*;
@@ -7,6 +18,7 @@ import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Background;
@@ -17,7 +29,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
-public class ChatClient extends Application {
+public class ClientMain extends Application {
 
 	private String name;
 	private TextArea incoming = new TextArea();
@@ -29,7 +41,7 @@ public class ChatClient extends Application {
 	private Text error1;
 	private Text success;
 	private TextField tf;
-	private TextField tf2;
+	private PasswordField tf2;
 	private Button btn1;
 	private Button btn2;
 	private Button btn3;
@@ -54,7 +66,7 @@ public class ChatClient extends Application {
 		tf.setLayoutY(30);
 		tf.setPrefWidth(285);
 
-		tf2 = new TextField();
+		tf2 = new PasswordField();
 		tf2.setPrefColumnCount(5);
 		tf2.setPromptText("Enter Password:");
 		tf2.setLayoutX(82.5);
@@ -100,6 +112,7 @@ public class ChatClient extends Application {
 		outgoing.setLayoutY(10);
 		outgoing.setPrefWidth(285);
 		outgoing.setVisible(false);
+		outgoing.setOnAction(e -> sendMessage());
 
 		btn3 = new Button();
 		btn3.setText("Send");

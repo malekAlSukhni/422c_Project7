@@ -1,3 +1,14 @@
+/* <ServerMain.java>
+ * EE422C Project 7 submission by
+ * Robert Bolt
+ * rob329
+ * 16465
+ * Malek Al Sukhni
+ * mha664
+ * 16470
+ * Slip days used: 1
+ * Fall 2016
+ */
 package assignment7;
 
 import java.io.BufferedReader;
@@ -10,7 +21,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Observable;
 
-public class ChatServer extends Observable {
+public class ServerMain extends Observable {
 
 	ArrayList<Socket> listOfAllSockets = new ArrayList<Socket>();
 	HashMap<String, String> info = new HashMap<String, String>();
@@ -18,7 +29,7 @@ public class ChatServer extends Observable {
 
 	public static void main(String[] args) {
 		try {
-			new ChatServer().setUpNetworking();
+			new ServerMain().setUpNetworking();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
