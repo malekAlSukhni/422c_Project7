@@ -44,6 +44,7 @@ public class ChatServer extends Observable {
 		private Socket sock;
 		private BufferedReader reader;
 		private PrintWriter pw;
+		private PrintWriter friendW;
 
 		public ClientHandler(Socket clientSocket) {
 			sock = clientSocket;
@@ -64,16 +65,18 @@ public class ChatServer extends Observable {
 					switch (x[0]) {
 					case "SU":
 						if (info.keySet().contains(x[1])) {
-							pw.println("error");
+							pw.println("error 0");
 							pw.flush();
 							break;
 						}
 						info.put(x[1], x[2]);
 						listOfUsers.add(new ChatUser(x[1], x[2]));
+						pw.println("signup");
+						pw.flush();
 						break;
 					case "LOGIN":
 						if (!info.keySet().contains(x[1])) {
-							pw.println("error");
+							pw.println("error 0");
 							pw.flush();
 							break;
 						}
@@ -82,23 +85,27 @@ public class ChatServer extends Observable {
 							for (ChatUser u : listOfUsers) {
 								if (u.name.equals(x[1])) {
 									if (u.online) {
-										pw.println("error");
+										pw.println("error 0");
 										pw.flush();
 										dont = true;
-										break;
 									} else {
+										name = u.name;
 										u.online = true;
+										u.setSocket(sock);
 									}
+									break;
 								}
 							}
-							if(dont){
+							if (dont) {
 								break;
 							}
 							pw.println("login success");
 							pw.flush();
+							setChanged();
+							notifyObservers(x[1] + " joined the server");
 							break;
 						} else {
-							pw.println("error");
+							pw.println("error 0");
 							pw.flush();
 							break;
 						}
@@ -106,12 +113,36 @@ public class ChatServer extends Observable {
 						setChanged();
 						notifyObservers(message.replace("MESSAGE ", ""));
 						break;
+					case "PRIVATE":
+						boolean worked = false;
+						for(ChatUser u : listOfUsers){
+							if(u.name.equals(x[1]) && u.online){
+								friendW = new PrintWriter(u.clientSock.getOutputStream());
+								String parsed = message.replace("PRIVATE ", "");
+								String reciever = "(private from " + name + ") " + parsed.replace(x[1] + " ", "");
+								String sender = "(private to " + x[1] + ") " + parsed.replace(x[1] + " ", "");
+								friendW.println(reciever);
+								friendW.flush();
+								pw.println(sender);
+								pw.flush();
+								worked = true;
+							}
+						}
+						if(worked){
+							break;
+						}
+						pw.println("error 1");
+						pw.flush();
+						break;
 					case "LOGOUT":
 						for (ChatUser u : listOfUsers) {
 							if (u.name.equals(x[1])) {
 								u.online = false;
 							}
 						}
+						setChanged();
+						notifyObservers(x[1] + " left the server");
+						break;
 					}
 				}
 			} catch (IOException e) {
