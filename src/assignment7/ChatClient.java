@@ -4,10 +4,14 @@ import java.io.*;
 import java.net.*;
 
 import javafx.application.Application;
+import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
@@ -17,16 +21,22 @@ public class ChatClient extends Application {
 
 	private String name;
 	private TextArea incoming = new TextArea();
+	private TextArea incomingPrivate = new TextArea();
 	private TextField outgoing = new TextField();
 	private BufferedReader reader;
 	private PrintWriter writer;
 	private Text error;
+	private Text error1;
+	private Text success;
 	private TextField tf;
 	private TextField tf2;
 	private Button btn1;
 	private Button btn2;
 	private Button btn3;
 	private Button btn4;
+	private OutputStream out;
+	private OutputStream out2;
+	private Stage primaryStage;
 
 	public static void main(String[] args) {
 		launch(args);
@@ -34,64 +44,91 @@ public class ChatClient extends Application {
 
 	@Override
 	public void start(Stage primaryStage) {
+		
+		this.primaryStage = primaryStage;
 
 		tf = new TextField();
 		tf.setPrefColumnCount(5);
 		tf.setPromptText("Enter Name:");
-		tf.setLayoutX(10);
-		tf.setLayoutY(10);
+		tf.setLayoutX(82.5);
+		tf.setLayoutY(30);
 		tf.setPrefWidth(285);
 
 		tf2 = new TextField();
 		tf2.setPrefColumnCount(5);
 		tf2.setPromptText("Enter Password:");
-		tf2.setLayoutX(10);
-		tf2.setLayoutY(50);
+		tf2.setLayoutX(82.5);
+		tf2.setLayoutY(70);
 		tf2.setPrefWidth(285);
 
 		btn1 = new Button();
 		btn1.setText("Register");
-		btn1.setLayoutX(305);
-		btn1.setLayoutY(10);
+		btn1.setLayoutX(185);
+		btn1.setLayoutY(110);
 		btn1.setOnAction(e -> setName(tf, tf2, 0));
 
 		btn2 = new Button();
 		btn2.setText("Login");
-		btn2.setLayoutX(305);
-		btn2.setLayoutY(50);
+		btn2.setLayoutX(195);
+		btn2.setLayoutY(150);
 		btn2.setOnAction(e -> setName(tf, tf2, 1));
 
 		error = new Text();
 		error.setText("There was an error with the Signup/Login, please try again");
 		error.setFill(Color.RED);
-		error.setLayoutX(10);
-		error.setLayoutY(120);
+		error.setLayoutX(30);
+		error.setLayoutY(210);
 		error.setVisible(false);
+		
+		error1 = new Text();
+		error1.setText("There was an error with sending your message, please try again");
+		error1.setFill(Color.RED);
+		error1.setLayoutX(10);
+		error1.setLayoutY(300);
+		error1.setVisible(false);
+		
+		success = new Text();
+		success.setText("Signup Success");
+		success.setFill(Color.GREEN);
+		success.setLayoutX(180);
+		success.setLayoutY(210);
+		success.setVisible(false);
 
 		outgoing.setPrefColumnCount(5);
 		outgoing.setPromptText("Enter Message");
-		outgoing.setLayoutX(10);
+		outgoing.setLayoutX(50);
 		outgoing.setLayoutY(10);
 		outgoing.setPrefWidth(285);
 		outgoing.setVisible(false);
 
 		btn3 = new Button();
 		btn3.setText("Send");
-		btn3.setLayoutX(305);
+		btn3.setLayoutX(345);
 		btn3.setLayoutY(10);
 		btn3.setOnAction(e -> sendMessage());
 		btn3.setVisible(false);
 
-		incoming.setLayoutX(10);
+		incoming.setLayoutX(50);
 		incoming.setLayoutY(50);
 		incoming.setPrefWidth(350);
-		OutputStream out = new OutputStream() {
+		out = new OutputStream() {
 			public void write(int b) throws IOException {
 				incoming.appendText(String.valueOf((char) b));
 			}
 		};
 		System.setOut(new PrintStream(out, true));
 		incoming.setVisible(false);
+		
+		incomingPrivate.setLayoutX(10);
+		incomingPrivate.setLayoutY(50);
+		incomingPrivate.setPrefWidth(350);
+		out2 = new OutputStream() {
+			public void write(int b) throws IOException {
+				incoming.appendText(String.valueOf((char) b));
+			}
+		};
+		System.setOut(new PrintStream(out, true));
+		incomingPrivate.setVisible(false);
 		
 		btn4 = new Button();
 		btn4.setText("Logout");
@@ -101,16 +138,16 @@ public class ChatClient extends Application {
 		btn4.setVisible(false);
 
 		Pane pane = new Pane();
-		pane.getChildren().addAll(tf, btn1, tf2, btn2, error, outgoing, incoming, btn3, btn4);
+		pane.setBackground(new Background(new BackgroundFill(Color.DARKTURQUOISE, CornerRadii.EMPTY, Insets.EMPTY)));
+		pane.getChildren().addAll(tf, btn1, tf2, btn2, error, error1, success, outgoing, incoming, btn3, btn4, incomingPrivate);
 
-		primaryStage.setTitle("Chat Room");
-		primaryStage.setScene(new Scene(pane, 450, 400));
-		primaryStage.show();
+		this.primaryStage.setTitle("Chat Room");
+		this.primaryStage.setScene(new Scene(pane, 450, 400));
+		this.primaryStage.show();
 		
 		try {
 			setUpNetworking();
 		} catch (Exception e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 
@@ -121,19 +158,19 @@ public class ChatClient extends Application {
 		btn1.setVisible(true);
 		tf2.setVisible(true);
 		btn2.setVisible(true);
-		error.setVisible(false);
 		outgoing.setVisible(false);
 		incoming.setVisible(false);
 		btn3.setVisible(false);
 		btn4.setVisible(false);
 		outgoing.setText("LOGOUT " + name);
+		disableErrors();
 		sendText();
 	}
 
 	private void setName(TextField tf, TextField tf2, int val) {
 
 		if (!tf.getText().equals("") && !tf2.getText().equals("")) {
-			error.setVisible(false);
+			disableErrors();
 			if (val == 0) {
 				outgoing.setText("SU " + tf.getText() + " " + tf2.getText());
 				sendText();
@@ -148,6 +185,14 @@ public class ChatClient extends Application {
 	}
 
 	private void sendMessage() {
+		String[] message = outgoing.getText().split(" ");
+		if(message[0].equals("/private")){
+			String privateMessage = outgoing.getText();
+			privateMessage = privateMessage.replace("/private", "");
+			outgoing.setText("PRIVATE" + privateMessage);
+			sendText();
+			return;
+		}
 		outgoing.setText("MESSAGE " + name + " : " + outgoing.getText());
 		sendText();
 	}
@@ -165,7 +210,6 @@ public class ChatClient extends Application {
 		InputStreamReader streamReader = new InputStreamReader(sock.getInputStream());
 		reader = new BufferedReader(streamReader);
 		writer = new PrintWriter(sock.getOutputStream());
-		System.out.println("Joined Chat Lobby");
 		Thread readerThread = new Thread(new IncomingReader());
 		readerThread.start();
 	}
@@ -176,11 +220,31 @@ public class ChatClient extends Application {
 		btn1.setVisible(false);
 		tf2.setVisible(false);
 		btn2.setVisible(false);
-		error.setVisible(false);
 		outgoing.setVisible(true);
 		incoming.setVisible(true);
 		btn3.setVisible(true);
 		btn4.setVisible(true);
+		outgoing.clear();
+		incoming.clear();
+		disableErrors();
+	}
+	
+	private void handleError(String[] x) {
+		success.setVisible(false);
+		switch(x[1]){
+		case "0":
+			error.setVisible(true);
+			break;
+		case "1":
+			error1.setVisible(true);
+			break;
+		}
+	}
+	
+	private void disableErrors(){
+		success.setVisible(false);
+		error.setVisible(false);
+		error1.setVisible(false);
 	}
 
 	class IncomingReader implements Runnable {
@@ -188,11 +252,16 @@ public class ChatClient extends Application {
 			String message;
 			try {
 				while ((message = reader.readLine()) != null) {
-					if (message.equals("error")) {
-						handleError();
+					String[] x = message.split(" ");
+					if (x[0].equals("error")) {
+						handleError(x);
 					} else if (message.equals("login success")) {
 						createMainStage();
-					} else {
+					} else if (message.equals("signup")){
+						success.setVisible(true);
+					}
+					else {
+						disableErrors();
 						incoming.appendText(message + "\n");
 					}
 				}
@@ -201,10 +270,6 @@ public class ChatClient extends Application {
 			{
 				ex.printStackTrace();
 			}
-		}
-
-		public void handleError() {
-			error.setVisible(true);
 		}
 	}
 }
